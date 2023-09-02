@@ -1,17 +1,42 @@
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 // Press Shift twice to open the Search Everywhere dialog and type `show whitespaces`,
 // then press Enter. You can now see whitespace characters in your code.
 public class Main {
-    public static void main(String[] args) {
-        // Press Alt+Enter with your caret at the highlighted text to see how
-        // IntelliJ IDEA suggests fixing it.
-        System.out.printf("Hello and welcome!");
+    public static void main(String[] args) throws InterruptedException {
+        ExecutorService service = null;
+        Philosopher[] philosophers = null;
+        ChopSticks[] chopSticks = null;
 
-        // Press Shift+F10 or click the green arrow button in the gutter to run the code.
-        for (int i = 1; i <= 5; i++) {
+        try {
+            philosophers = new Philosopher[Constants.NUMBER_OF_PHILOSOPHERS];
+            chopSticks = new ChopSticks[Constants.NUMBER_OF_CHOPSTICKS];
 
-            // Press Shift+F9 to start debugging your code. We have set one breakpoint
-            // for you, but you can always add more by pressing Ctrl+F8.
-            System.out.println("i = " + i);
+            for (int i=0; i<Constants.NUMBER_OF_CHOPSTICKS; i++) {
+                chopSticks[i] = new ChopSticks(i);
+            }
+            service = Executors.newFixedThreadPool(Constants.NUMBER_OF_PHILOSOPHERS);
+            for (int i=0; i<Constants.NUMBER_OF_PHILOSOPHERS; i++) {
+                philosophers[i] = new Philosopher(i, chopSticks[i],
+                        chopSticks[(i+1) % Constants.NUMBER_OF_CHOPSTICKS]);
+                service.execute(philosophers[i]);
+            }
+
+            Thread.sleep(Constants.SIMULATION_RUNNING_TIME);
+
+            for (Philosopher philosopher: philosophers) {
+                philosopher.setFull(true);
+            }
+        } finally {
+            assert service != null;
+            service.shutdown();
+            while (!service.isTerminated()) {
+                Thread.sleep(1000);
+            }
+            for (Philosopher philosopher: philosophers) {
+                System.out.println(philosopher+" eats #"+philosopher.getEatingCount()+" times");
+            }
         }
     }
 }

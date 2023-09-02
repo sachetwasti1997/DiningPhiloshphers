@@ -1,2 +1,4 @@
-public class State {
+public enum State {
+    LEFT,
+    RIGHT;
 }
